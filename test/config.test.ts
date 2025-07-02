@@ -28,14 +28,14 @@ describe("Config", () => {
     
     expect(config).toEqual({
       mode: "copy",
-      paths: [".env"]
+      include: [".env"]
     });
   });
 
   it("should load local config from .graftreerc", async () => {
     const localConfig = {
       mode: "symlink",
-      paths: [".env", ".env.local"]
+      include: [".env", ".env.local"]
     };
     
     writeFileSync(".graftreerc", JSON.stringify(localConfig));
@@ -48,13 +48,13 @@ describe("Config", () => {
   it("should merge global and local configs with local taking precedence", async () => {
     const globalConfig = {
       mode: "copy",
-      paths: [".env", "config.json"],
+      include: [".env", "config.json"],
       exclude: ["node_modules"]
     };
     
     const localConfig = {
       mode: "symlink",
-      paths: [".env.local"]
+      include: [".env.local"]
     };
     
     // Create mock global config
@@ -74,7 +74,7 @@ describe("Config", () => {
       
       expect(config).toEqual({
         mode: "symlink", // local overrides global
-        paths: [".env.local"], // local overrides global
+        include: [".env.local"], // local overrides global
         exclude: ["node_modules"] // global value preserved
       });
     } finally {
@@ -95,7 +95,7 @@ describe("Config", () => {
     // Should fall back to default config
     expect(config).toEqual({
       mode: "copy",
-      paths: [".env"]
+      include: [".env"]
     });
   });
 });

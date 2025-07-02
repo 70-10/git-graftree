@@ -4,13 +4,13 @@ import os from "os";
 
 export interface GraftreeConfig {
   mode: "copy" | "symlink";
-  paths: string[];
+  include: string[];
   exclude?: string[];
 }
 
 const DEFAULT_CONFIG: GraftreeConfig = {
   mode: "copy",
-  paths: [".env"]
+  include: [".env"]
 };
 
 export async function loadConfig(): Promise<GraftreeConfig> {

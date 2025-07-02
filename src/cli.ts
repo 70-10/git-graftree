@@ -53,7 +53,7 @@ const main = defineCommand({
       const config = await loadConfig();
       console.log("📋 Configuration loaded:", {
         mode: config.mode,
-        paths: config.paths,
+        include: config.include,
         exclude: config.exclude || []
       });
 
@@ -73,7 +73,7 @@ const main = defineCommand({
       // Expand glob patterns
       const sourceDir = process.cwd();
       console.log("🔍 Expanding path patterns...");
-      const expandedPaths = await expandGlobPatterns(config.paths, sourceDir);
+      const expandedPaths = await expandGlobPatterns(config.include, sourceDir);
       
       // Filter out excluded paths
       const filteredPaths = await filterPaths(expandedPaths, config.exclude);
