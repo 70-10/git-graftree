@@ -12,13 +12,11 @@ export async function copyOrLinkFile(options: FileOperationOptions): Promise<voi
   const { sourcePath, targetPath, useSymlinks } = options;
   
   if (!existsSync(sourcePath)) {
-    console.warn(`Warning: Source file ${sourcePath} does not exist, skipping`);
     return;
   }
 
   // Skip if target already exists
   if (existsSync(targetPath)) {
-    console.log(`Target already exists, skipping: ${targetPath}`);
     return;
   }
   
@@ -30,14 +28,11 @@ export async function copyOrLinkFile(options: FileOperationOptions): Promise<voi
   
   try {
     if (useSymlinks) {
-      console.log(`Creating symlink: ${sourcePath} -> ${targetPath}`);
       await symlink(sourcePath, targetPath);
     } else {
-      console.log(`Copying file: ${sourcePath} -> ${targetPath}`);
       await copyFile(sourcePath, targetPath);
     }
   } catch (error) {
-    console.error(`Failed to ${useSymlinks ? 'symlink' : 'copy'} ${sourcePath}:`, error);
     throw error;
   }
 }
@@ -46,7 +41,6 @@ export async function copyOrLinkDirectory(options: FileOperationOptions): Promis
   const { sourcePath, targetPath, useSymlinks } = options;
   
   if (!existsSync(sourcePath)) {
-    console.warn(`Warning: Source directory ${sourcePath} does not exist, skipping`);
     return;
   }
   
@@ -93,7 +87,6 @@ export async function processPath(
   const targetPath = path.resolve(targetBase, patternPath);
   
   if (!existsSync(sourcePath)) {
-    console.warn(`Warning: Path ${sourcePath} does not exist, skipping`);
     return;
   }
   

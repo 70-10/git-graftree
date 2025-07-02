@@ -5,7 +5,6 @@ import path from "path";
 export async function addToGitExclude(patterns: string[]): Promise<void> {
   const gitDir = await findGitDir();
   if (!gitDir) {
-    console.warn("Warning: Not in a git repository, skipping .git/info/exclude update");
     return;
   }
   
@@ -34,7 +33,6 @@ export async function addToGitExclude(patterns: string[]): Promise<void> {
   const newPatterns = patterns.filter(pattern => !existingPatterns.has(pattern));
   
   if (newPatterns.length === 0) {
-    console.log("All patterns already exist in .git/info/exclude");
     return;
   }
   
@@ -47,7 +45,6 @@ export async function addToGitExclude(patterns: string[]): Promise<void> {
   ].join('\n');
   
   await appendFile(excludeFile, linesToAdd);
-  console.log(`Added ${newPatterns.length} patterns to .git/info/exclude:`, newPatterns);
 }
 
 async function findGitDir(): Promise<string | null> {
