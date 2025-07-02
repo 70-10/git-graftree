@@ -54,7 +54,7 @@ Create `.graftreerc` in your project root or home directory:
 ```
 
 - **mode**: `"copy"` or `"symlink"` (default: `"copy"`)
-- **include**: Files/patterns to copy (default: `[".env"]`)
+- **include**: Files/patterns to copy (default: `[]`)
 - **exclude**: Patterns to exclude (optional)
 
 Local `.graftreerc` overrides global `~/.graftreerc`.
