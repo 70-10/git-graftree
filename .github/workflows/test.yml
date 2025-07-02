@@ -45,7 +45,7 @@ jobs:
         with:
           lcov-file: ./coverage/lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          filter-changed-files: true
+          filter-changed-files: false
 
       - name: Run TypeScript type check
         run: bunx tsc --noEmit
