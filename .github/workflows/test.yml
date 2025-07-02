@@ -27,6 +27,11 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Install ghq
+        run: |
+          go install github.com/x-motemen/ghq@latest
+          echo "$HOME/go/bin" >> $GITHUB_PATH
+
       - name: Run tests
         run: bun test
 
