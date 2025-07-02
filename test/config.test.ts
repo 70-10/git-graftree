@@ -28,7 +28,7 @@ describe("Config", () => {
     
     expect(config).toEqual({
       mode: "copy",
-      include: [".env"]
+      include: []
     });
   });
 
@@ -95,7 +95,7 @@ describe("Config", () => {
     // Should fall back to default config
     expect(config).toEqual({
       mode: "copy",
-      include: [".env"]
+      include: []
     });
   });
 });

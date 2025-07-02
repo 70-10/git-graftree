@@ -11,7 +11,7 @@ export interface GraftreeConfig {
 
 const DEFAULT_CONFIG: GraftreeConfig = {
   mode: "copy",
-  include: [".env"]
+  include: []
 };
 
 export async function loadConfig(): Promise<GraftreeConfig> {
