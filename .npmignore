@@ -1,0 +1,21 @@
+# Source files
+src/
+test/
+
+# Development files
+tsconfig.json
+bun.lock
+mise.toml
+
+# Documentation
+requirements.md
+CLAUDE.md
+
+# IDE
+.cursor/
+.vscode/
+
+# Misc
+node_modules/
+*.log
+.DS_Store

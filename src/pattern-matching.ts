@@ -1,4 +1,4 @@
-import { Glob } from "bun";
+import { glob } from "glob";
 import path from "path";
 
 export async function expandGlobPatterns(
@@ -14,9 +14,8 @@ export async function expandGlobPatterns(
       continue;
     }
     
-    // Use Bun's Glob to expand pattern
-    const glob = new Glob(pattern);
-    const matches = await Array.fromAsync(glob.scan({ cwd: baseDir }));
+    // Use glob to expand pattern
+    const matches = await glob(pattern, { cwd: baseDir });
     
     for (const match of matches) {
       expandedPaths.push(match);

@@ -1,4 +1,4 @@
-import { $ } from "bun";
+import { execa } from "execa";
 import path from "path";
 
 export interface WorktreeOptions {
@@ -32,7 +32,7 @@ export async function createWorktree(options: WorktreeOptions): Promise<string> 
     console.log(`Creating worktree at ${worktreePath} for branch ${branch}...`);
     
     // Execute git worktree add command
-    await $`git ${args}`.text();
+    await execa("git", args);
     
     console.log("Worktree created successfully");
     return worktreePath;
@@ -44,8 +44,8 @@ export async function createWorktree(options: WorktreeOptions): Promise<string> 
 
 export async function isGitRepository(): Promise<boolean> {
   try {
-    const result = await $`git rev-parse --is-inside-work-tree`.quiet();
-    return result.text().trim() === "true";
+    const result = await execa("git", ["rev-parse", "--is-inside-work-tree"]);
+    return result.stdout.trim() === "true";
   } catch {
     return false;
   }

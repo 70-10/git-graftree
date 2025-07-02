@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { existsSync, mkdirSync, rmSync } from "fs";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "fs";
 import path from "path";
 import os from "os";
-import { $ } from "bun";
+import { execa } from "execa";
 import { createWorktree, isGitRepository } from "../src/worktree";
 
 describe("Worktree", () => {
@@ -17,14 +17,14 @@ describe("Worktree", () => {
     process.chdir(testDir);
     
     // Initialize git repository
-    await $`git init`.quiet();
-    await $`git config user.name "Test User"`.quiet();
-    await $`git config user.email "test@example.com"`.quiet();
+    await execa("git", ["init"], { stdio: "ignore" });
+    await execa("git", ["config", "user.name", "Test User"], { stdio: "ignore" });
+    await execa("git", ["config", "user.email", "test@example.com"], { stdio: "ignore" });
     
     // Create initial commit
-    await $`echo "# Test Repo" > README.md`.quiet();
-    await $`git add README.md`.quiet();
-    await $`git commit -m "Initial commit"`.quiet();
+    writeFileSync("README.md", "# Test Repo\n");
+    await execa("git", ["add", "README.md"], { stdio: "ignore" });
+    await execa("git", ["commit", "-m", "Initial commit"], { stdio: "ignore" });
   });
   
   afterEach(() => {
@@ -55,13 +55,14 @@ describe("Worktree", () => {
 
   it("should create worktree with default path", async () => {
     // Create a new branch
-    await $`git checkout -b feature-branch-${Date.now()}`.quiet();
-    await $`echo "feature" > feature.txt`.quiet();
-    await $`git add feature.txt`.quiet();
-    await $`git commit -m "Add feature"`.quiet();
-    const branchName = await $`git branch --show-current`.text();
-    const cleanBranchName = branchName.trim();
-    await $`git checkout main`.quiet();
+    const timestamp = Date.now();
+    await execa("git", ["checkout", "-b", `feature-branch-${timestamp}`], { stdio: "ignore" });
+    writeFileSync("feature.txt", "feature\n");
+    await execa("git", ["add", "feature.txt"], { stdio: "ignore" });
+    await execa("git", ["commit", "-m", "Add feature"], { stdio: "ignore" });
+    const branchResult = await execa("git", ["branch", "--show-current"]);
+    const cleanBranchName = branchResult.stdout.trim();
+    await execa("git", ["checkout", "main"], { stdio: "ignore" });
     
     const worktreePath = await createWorktree({
       branch: cleanBranchName
@@ -77,11 +78,11 @@ describe("Worktree", () => {
   it("should create worktree with custom path", async () => {
     // Create a new branch  
     const customBranchName = `custom-branch-${Date.now()}`;
-    await $`git checkout -b ${customBranchName}`.quiet();
-    await $`echo "custom" > custom.txt`.quiet();
-    await $`git add custom.txt`.quiet();
-    await $`git commit -m "Add custom"`.quiet();
-    await $`git checkout main`.quiet();
+    await execa("git", ["checkout", "-b", customBranchName], { stdio: "ignore" });
+    writeFileSync("custom.txt", "custom\n");
+    await execa("git", ["add", "custom.txt"], { stdio: "ignore" });
+    await execa("git", ["commit", "-m", "Add custom"], { stdio: "ignore" });
+    await execa("git", ["checkout", "main"], { stdio: "ignore" });
     
     const customPath = path.join(testDir, "custom-worktree");
     const worktreePath = await createWorktree({
@@ -102,11 +103,11 @@ describe("Worktree", () => {
 
   it("should create another worktree successfully", async () => {
     const anotherBranchName = `another-branch-${Date.now()}`;
-    await $`git checkout -b ${anotherBranchName}`.quiet();
-    await $`echo "another" > another.txt`.quiet();
-    await $`git add another.txt`.quiet();
-    await $`git commit -m "Add another"`.quiet();
-    await $`git checkout main`.quiet();
+    await execa("git", ["checkout", "-b", anotherBranchName], { stdio: "ignore" });
+    writeFileSync("another.txt", "another\n");
+    await execa("git", ["add", "another.txt"], { stdio: "ignore" });
+    await execa("git", ["commit", "-m", "Add another"], { stdio: "ignore" });
+    await execa("git", ["checkout", "main"], { stdio: "ignore" });
     
     const anotherPath = path.join(testDir, "another-worktree");
     const worktreePath = await createWorktree({
