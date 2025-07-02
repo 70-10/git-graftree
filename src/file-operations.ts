@@ -15,6 +15,12 @@ export async function copyOrLinkFile(options: FileOperationOptions): Promise<voi
     console.warn(`Warning: Source file ${sourcePath} does not exist, skipping`);
     return;
   }
+
+  // Skip if target already exists
+  if (existsSync(targetPath)) {
+    console.log(`Target already exists, skipping: ${targetPath}`);
+    return;
+  }
   
   // Ensure target directory exists
   const targetDir = path.dirname(targetPath);
