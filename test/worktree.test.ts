@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from "fs";
 import path from "path";
 import os from "os";
 import { execa } from "execa";
-import { createWorktree, isGitRepository } from "../src/worktree";
+import { createWorktree, isGitRepository, checkBranchExists } from "../src/worktree";
 
 describe("Worktree", () => {
   const testDir = path.join(os.tmpdir(), "graftree-worktree-test-" + Date.now());
@@ -95,10 +95,25 @@ describe("Worktree", () => {
     expect(existsSync(path.join(customPath, "custom.txt"))).toBe(true);
   });
 
-  it("should handle non-existent branch", async () => {
-    await expect(createWorktree({
-      branch: "non-existent-branch"
-    })).rejects.toThrow("Failed to create worktree");
+  it("should create worktree successfully even with non-existent branch", async () => {
+    const nonExistentBranch = `non-existent-${Date.now()}`;
+    
+    // Verify branch doesn't exist initially
+    const existsBefore = await checkBranchExists(nonExistentBranch);
+    expect(existsBefore).toBe(false);
+    
+    const customPath = path.join(testDir, "non-existent-worktree");
+    const worktreePath = await createWorktree({
+      branch: nonExistentBranch,
+      path: customPath
+    });
+    
+    expect(worktreePath).toBe(customPath);
+    expect(existsSync(customPath)).toBe(true);
+    
+    // Verify the branch was created
+    const existsAfter = await checkBranchExists(nonExistentBranch);
+    expect(existsAfter).toBe(true);
   });
 
   it("should create another worktree successfully", async () => {
@@ -118,5 +133,64 @@ describe("Worktree", () => {
     expect(worktreePath).toBe(anotherPath);
     expect(existsSync(anotherPath)).toBe(true);
     expect(existsSync(path.join(anotherPath, "another.txt"))).toBe(true);
+  });
+
+  describe("Branch existence checking", () => {
+    it("should return true for existing branch (main)", async () => {
+      const exists = await checkBranchExists("main");
+      expect(exists).toBe(true);
+    });
+
+    it("should return false for non-existent branch", async () => {
+      const exists = await checkBranchExists("non-existent-branch-12345");
+      expect(exists).toBe(false);
+    });
+
+    it("should return true for created branch", async () => {
+      const testBranchName = `test-exists-${Date.now()}`;
+      
+      // Create a test branch
+      await execa("git", ["checkout", "-b", testBranchName], { stdio: "ignore" });
+      await execa("git", ["checkout", "main"], { stdio: "ignore" });
+      
+      const exists = await checkBranchExists(testBranchName);
+      expect(exists).toBe(true);
+      
+      // Cleanup
+      await execa("git", ["branch", "-D", testBranchName], { stdio: "ignore" });
+    });
+  });
+
+  describe("Auto-create new branch", () => {
+    it("should create worktree with new branch when branch doesn't exist", async () => {
+      const newBranchName = `auto-created-${Date.now()}`;
+      
+      // Verify branch doesn't exist initially
+      const existsBefore = await checkBranchExists(newBranchName);
+      expect(existsBefore).toBe(false);
+      
+      const customPath = path.join(testDir, "auto-created-worktree");
+      const worktreePath = await createWorktree({
+        branch: newBranchName,
+        path: customPath
+      });
+      
+      expect(worktreePath).toBe(customPath);
+      expect(existsSync(customPath)).toBe(true);
+      
+      // Verify the branch was created
+      const existsAfter = await checkBranchExists(newBranchName);
+      expect(existsAfter).toBe(true);
+      
+      // Verify we're on the correct branch in the worktree
+      const originalCwd = process.cwd();
+      try {
+        process.chdir(customPath);
+        const branchResult = await execa("git", ["branch", "--show-current"]);
+        expect(branchResult.stdout.trim()).toBe(newBranchName);
+      } finally {
+        process.chdir(originalCwd);
+      }
+    });
   });
 });

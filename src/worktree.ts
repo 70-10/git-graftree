@@ -14,6 +14,9 @@ export async function createWorktree(options: WorktreeOptions): Promise<string> 
   // Determine the worktree path
   const worktreePath = targetPath || path.join(process.cwd(), `../${branch}`);
   
+  // Check if branch exists
+  const branchExists = await checkBranchExists(branch);
+  
   // Build git worktree command
   const args = ["worktree", "add"];
   
@@ -25,8 +28,17 @@ export async function createWorktree(options: WorktreeOptions): Promise<string> 
     args.push("--no-track");
   }
   
-  args.push(worktreePath);
-  args.push(branch);
+  if (!branchExists) {
+    // Create new branch
+    console.log(`Branch '${branch}' does not exist. Creating new branch...`);
+    args.push("-b");
+    args.push(branch);
+    args.push(worktreePath);
+  } else {
+    // Use existing branch
+    args.push(worktreePath);
+    args.push(branch);
+  }
   
   try {
     console.log(`Creating worktree at ${worktreePath} for branch ${branch}...`);
@@ -46,6 +58,15 @@ export async function isGitRepository(): Promise<boolean> {
   try {
     const result = await execa("git", ["rev-parse", "--is-inside-work-tree"]);
     return result.stdout.trim() === "true";
+  } catch {
+    return false;
+  }
+}
+
+export async function checkBranchExists(branch: string): Promise<boolean> {
+  try {
+    await execa("git", ["show-ref", "--verify", "--quiet", `refs/heads/${branch}`]);
+    return true;
   } catch {
     return false;
   }
