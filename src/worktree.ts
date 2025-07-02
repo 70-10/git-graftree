@@ -1,4 +1,5 @@
 import { execa } from "execa";
+import { mkdir } from "fs/promises";
 import path from "path";
 
 export interface WorktreeOptions {
@@ -53,7 +54,7 @@ export async function createWorktree(options: WorktreeOptions): Promise<string> 
     
     // Ensure the parent directory exists
     const parentDir = path.dirname(worktreePath);
-    await import("fs").then(fs => fs.promises.mkdir(parentDir, { recursive: true }));
+    await mkdir(parentDir, { recursive: true });
     
     // Execute git worktree add command
     await execa("git", args);

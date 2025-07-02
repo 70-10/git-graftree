@@ -1,4 +1,5 @@
 import { existsSync } from "fs";
+import { readFile } from "fs/promises";
 import path from "path";
 import os from "os";
 
@@ -20,7 +21,8 @@ export async function loadConfig(): Promise<GraftreeConfig> {
   const globalConfigPath = path.join(os.homedir(), ".graftreerc");
   if (existsSync(globalConfigPath)) {
     try {
-      const globalConfig = await Bun.file(globalConfigPath).json();
+      const globalConfigContent = await readFile(globalConfigPath, "utf-8");
+      const globalConfig = JSON.parse(globalConfigContent);
       configs.push(globalConfig);
     } catch (error) {
       console.warn(`Warning: Failed to parse global config at ${globalConfigPath}`);
@@ -31,7 +33,8 @@ export async function loadConfig(): Promise<GraftreeConfig> {
   const localConfigPath = path.join(process.cwd(), ".graftreerc");
   if (existsSync(localConfigPath)) {
     try {
-      const localConfig = await Bun.file(localConfigPath).json();
+      const localConfigContent = await readFile(localConfigPath, "utf-8");
+      const localConfig = JSON.parse(localConfigContent);
       configs.push(localConfig);
     } catch (error) {
       console.warn(`Warning: Failed to parse local config at ${localConfigPath}`);
