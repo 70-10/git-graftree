@@ -88,7 +88,7 @@ export async function checkBranchExists(branch: string): Promise<boolean> {
 
 export async function getGhqRoot(): Promise<string> {
   try {
-    const result = await execa("ghq", ["root"]);
+    const result = await execa("ghq", ["root"], { timeout: 2000 });
     return result.stdout.trim();
   } catch (error) {
     // Fallback to default ghq root if ghq command is not available
