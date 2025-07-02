@@ -1,0 +1,8 @@
+[test]
+# カバレッジ設定
+coverageReporter = "lcov"
+coverageDir = "./coverage"
+# カバレッジ閾値（90%）
+coverageThreshold = 0.9
+# テストファイルをカバレッジから除外
+coverageSkipTestFiles = true
