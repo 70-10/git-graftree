@@ -12,7 +12,15 @@ export async function createWorktree(options: WorktreeOptions): Promise<string> 
   const { branch, path: targetPath, noTrack, force } = options;
   
   // Determine the worktree path
-  const worktreePath = targetPath || path.join(process.cwd(), `../${branch}`);
+  let worktreePath: string;
+  if (targetPath) {
+    worktreePath = targetPath;
+  } else {
+    // Use ghq-style path structure: ${ghq.root}/worktrees/${repo}/${branch}
+    const ghqRoot = await getGhqRoot();
+    const repoName = await getRepositoryName();
+    worktreePath = path.join(ghqRoot, "worktrees", repoName, branch);
+  }
   
   // Check if branch exists
   const branchExists = await checkBranchExists(branch);
@@ -43,14 +51,19 @@ export async function createWorktree(options: WorktreeOptions): Promise<string> 
   try {
     console.log(`Creating worktree at ${worktreePath} for branch ${branch}...`);
     
+    // Ensure the parent directory exists
+    const parentDir = path.dirname(worktreePath);
+    await import("fs").then(fs => fs.promises.mkdir(parentDir, { recursive: true }));
+    
     // Execute git worktree add command
     await execa("git", args);
     
     console.log("Worktree created successfully");
     return worktreePath;
   } catch (error) {
-    console.error("Failed to create worktree:", error);
-    throw new Error(`Failed to create worktree: ${error}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Failed to create worktree:", errorMessage);
+    throw new Error(`Failed to create worktree for branch '${branch}': ${errorMessage}`);
   }
 }
 
@@ -69,5 +82,30 @@ export async function checkBranchExists(branch: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+export async function getGhqRoot(): Promise<string> {
+  try {
+    const result = await execa("ghq", ["root"]);
+    return result.stdout.trim();
+  } catch (error) {
+    // Fallback to default ghq root if ghq command is not available
+    const fallbackPath = path.join(process.env.HOME || process.cwd(), "ghq");
+    console.warn(`ghq command not available, using fallback path: ${fallbackPath}`);
+    return fallbackPath;
+  }
+}
+
+export async function getRepositoryName(): Promise<string> {
+  try {
+    const result = await execa("git", ["rev-parse", "--show-toplevel"]);
+    const repoRoot = result.stdout.trim();
+    return path.basename(repoRoot);
+  } catch (error) {
+    // Fallback to current directory name if not in a git repository
+    const fallbackName = path.basename(process.cwd());
+    console.warn(`Not in a git repository, using current directory name: ${fallbackName}`);
+    return fallbackName;
   }
 }

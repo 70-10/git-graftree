@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from "fs";
 import path from "path";
 import os from "os";
 import { execa } from "execa";
-import { createWorktree, isGitRepository, checkBranchExists } from "../src/worktree";
+import { createWorktree, isGitRepository, checkBranchExists, getGhqRoot, getRepositoryName } from "../src/worktree";
 
 describe("Worktree", () => {
   const testDir = path.join(os.tmpdir(), "graftree-worktree-test-" + Date.now());
@@ -53,7 +53,7 @@ describe("Worktree", () => {
     }
   });
 
-  it("should create worktree with default path", async () => {
+  it("should create worktree with default path (ghq-style)", async () => {
     // Create a new branch
     const timestamp = Date.now();
     await execa("git", ["checkout", "-b", `feature-branch-${timestamp}`], { stdio: "ignore" });
@@ -68,9 +68,12 @@ describe("Worktree", () => {
       branch: cleanBranchName
     });
     
-    const expectedPath = path.resolve(testDir, `../${cleanBranchName}`);
-    // Use fs.realpathSync to resolve symlinks like /private/var -> /var on macOS
-    expect(require("fs").realpathSync(worktreePath)).toBe(require("fs").realpathSync(expectedPath));
+    // Verify it uses ghq-style path structure
+    const ghqRoot = await getGhqRoot();
+    const repoName = await getRepositoryName();
+    const expectedPath = path.join(ghqRoot, "worktrees", repoName, cleanBranchName);
+    
+    expect(path.resolve(worktreePath)).toBe(path.resolve(expectedPath));
     expect(existsSync(worktreePath)).toBe(true);
     expect(existsSync(path.join(worktreePath, "feature.txt"))).toBe(true);
   });
@@ -191,6 +194,52 @@ describe("Worktree", () => {
       } finally {
         process.chdir(originalCwd);
       }
+    });
+  });
+
+  describe("ghq integration", () => {
+    it("should get ghq root directory", async () => {
+      const ghqRoot = await getGhqRoot();
+      
+      // Should return a valid path (either from ghq command or fallback)
+      expect(typeof ghqRoot).toBe("string");
+      expect(ghqRoot.length).toBeGreaterThan(0);
+      expect(path.isAbsolute(ghqRoot)).toBe(true);
+    });
+
+    it("should get repository name from current directory", async () => {
+      const repoName = await getRepositoryName();
+      
+      expect(typeof repoName).toBe("string");
+      expect(repoName.length).toBeGreaterThan(0);
+      // In test environment, repository name will be the test directory name
+      expect(repoName).toMatch(/^graftree-worktree-test-\d+$/);
+    });
+
+    it("should create worktree with ghq-style path structure", async () => {
+      const newBranchName = `ghq-test-${Date.now()}`;
+      
+      // Create worktree without specifying path (should use ghq structure)
+      const worktreePath = await createWorktree({
+        branch: newBranchName
+      });
+      
+      const ghqRoot = await getGhqRoot();
+      const repoName = await getRepositoryName();
+      const expectedPath = path.join(ghqRoot, "worktrees", repoName, newBranchName);
+      
+      expect(path.resolve(worktreePath)).toBe(path.resolve(expectedPath));
+      expect(existsSync(worktreePath)).toBe(true);
+      
+      // Verify the branch was created
+      const branchExists = await checkBranchExists(newBranchName);
+      expect(branchExists).toBe(true);
+      
+      // Verify directory structure
+      const worktreesDir = path.join(ghqRoot, "worktrees");
+      const repoDir = path.join(worktreesDir, repoName);
+      expect(existsSync(worktreesDir)).toBe(true);
+      expect(existsSync(repoDir)).toBe(true);
     });
   });
 });
