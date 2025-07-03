@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { defineCommand, runMain } from "citty";
-import { loadConfig } from "./config";
+import { loadConfig, CliArgs } from "./config";
 import { createWorktree, isGitRepository } from "./worktree";
 import { expandGlobPatterns, filterPaths } from "./pattern-matching";
 import { processPath } from "./file-operations";
@@ -37,6 +37,16 @@ const main = defineCommand({
       type: "boolean",
       description: "Force creation even if worktree directory exists",
       alias: "f"
+    },
+    include: {
+      type: "string",
+      description: "Include files matching this pattern (can be used multiple times)",
+      alias: "i"
+    },
+    exclude: {
+      type: "string", 
+      description: "Exclude files matching this pattern (can be used multiple times)",
+      alias: "e"
     }
   },
   async run({ args }) {
@@ -47,8 +57,17 @@ const main = defineCommand({
         process.exit(1);
       }
 
+      // Prepare CLI args for config loading
+      const cliArgs: CliArgs = {};
+      if (args.include) {
+        cliArgs.include = Array.isArray(args.include) ? args.include : [args.include];
+      }
+      if (args.exclude) {
+        cliArgs.exclude = Array.isArray(args.exclude) ? args.exclude : [args.exclude];
+      }
+      
       // Load configuration
-      const config = await loadConfig();
+      const config = await loadConfig(Object.keys(cliArgs).length > 0 ? cliArgs : undefined);
       const useSymlinks = args.symlink ?? (config.mode === "symlink");
 
       // Create worktree

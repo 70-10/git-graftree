@@ -9,12 +9,17 @@ export interface GraftreeConfig {
   exclude?: string[];
 }
 
+export interface CliArgs {
+  include?: string[];
+  exclude?: string[];
+}
+
 const DEFAULT_CONFIG: GraftreeConfig = {
   mode: "copy",
   include: []
 };
 
-export async function loadConfig(): Promise<GraftreeConfig> {
+export async function loadConfig(cliArgs?: CliArgs): Promise<GraftreeConfig> {
   const configs: Partial<GraftreeConfig>[] = [];
   
   // Load global config (~/.graftreerc)
@@ -42,8 +47,20 @@ export async function loadConfig(): Promise<GraftreeConfig> {
   }
   
   // Merge configs: DEFAULT_CONFIG < global < local
-  return {
+  const mergedConfig = {
     ...DEFAULT_CONFIG,
     ...configs.reduce((acc, config) => ({ ...acc, ...config }), {})
   };
+  
+  // Apply CLI args if provided (highest priority)
+  if (cliArgs) {
+    if (cliArgs.include) {
+      mergedConfig.include = cliArgs.include;
+    }
+    if (cliArgs.exclude) {
+      mergedConfig.exclude = cliArgs.exclude;
+    }
+  }
+  
+  return mergedConfig;
 }
