@@ -39,6 +39,16 @@ git graftree feature-branch --force
 # Automatically creates new branch if it doesn't exist
 git graftree new-feature
 # → Creates branch 'new-feature' and worktree
+
+# Specify files directly with CLI arguments (no config file needed)
+git graftree feature-branch --include .env --include .env.local
+git graftree feature-branch -i .env -i .env.local
+
+# Include and exclude patterns
+git graftree feature-branch -i ".env*" -e ".env.prod"
+
+# Combine with config file (CLI args append to config)
+git graftree feature-branch -i .custom-config
 ```
 
 ## Configuration
@@ -58,6 +68,27 @@ Create `.graftreerc` in your project root or home directory:
 - **exclude**: Patterns to exclude (optional)
 
 Local `.graftreerc` overrides global `~/.graftreerc`.
+
+### CLI Arguments
+
+You can also specify files directly using command-line arguments:
+
+```bash
+# Include specific files
+git graftree branch-name --include .env --include config.json
+git graftree branch-name -i .env -i config.json
+
+# Exclude patterns  
+git graftree branch-name --include ".env*" --exclude ".env.prod"
+git graftree branch-name -i ".env*" -e ".env.prod"
+```
+
+**Behavior:**
+- CLI arguments **append** to config file settings (don't override them)
+- You can use CLI arguments without any config file
+- Perfect for one-off worktree creation with specific files
+
+**Priority:** `Default config < Global config < Local config < CLI arguments (appended)`
 
 ## Path Structure
 
@@ -94,3 +125,6 @@ The tool automatically:
 - 🏠 ghq integration for organized worktree paths
 - 🔧 Automatic branch creation for non-existent branches
 - 📂 Smart directory structure management
+- 🎯 CLI arguments for direct file specification
+- 📝 Works without configuration files
+- 🔄 Flexible config file and CLI argument combination
