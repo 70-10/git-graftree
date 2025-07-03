@@ -99,7 +99,7 @@ describe("Config", () => {
     });
   });
 
-  it("should override config with CLI arguments", async () => {
+  it("should append CLI arguments to config", async () => {
     const localConfig = {
       mode: "copy",
       include: [".env", "config.json"],
@@ -117,8 +117,8 @@ describe("Config", () => {
     
     expect(config).toEqual({
       mode: "copy",
-      include: [".env.local", ".env.test"], // CLI args override config
-      exclude: ["*.log"] // CLI args override config
+      include: [".env", "config.json", ".env.local", ".env.test"], // CLI args appended to config
+      exclude: ["node_modules", "*.log"] // CLI args appended to config
     });
   });
 
@@ -135,7 +135,7 @@ describe("Config", () => {
     expect(config).toEqual(localConfig);
   });
 
-  it("should merge CLI arguments with config when partial CLI args provided", async () => {
+  it("should append CLI arguments with config when partial CLI args provided", async () => {
     const localConfig = {
       mode: "copy",
       include: [".env", "config.json"],
@@ -152,7 +152,7 @@ describe("Config", () => {
     
     expect(config).toEqual({
       mode: "copy",
-      include: [".env.local"], // CLI args override config
+      include: [".env", "config.json", ".env.local"], // CLI args appended to config
       exclude: ["node_modules"] // Config value preserved
     });
   });

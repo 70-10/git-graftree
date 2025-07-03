@@ -52,13 +52,13 @@ export async function loadConfig(cliArgs?: CliArgs): Promise<GraftreeConfig> {
     ...configs.reduce((acc, config) => ({ ...acc, ...config }), {})
   };
   
-  // Apply CLI args if provided (highest priority)
+  // Apply CLI args if provided (append to config)
   if (cliArgs) {
     if (cliArgs.include) {
-      mergedConfig.include = cliArgs.include;
+      mergedConfig.include = [...mergedConfig.include, ...cliArgs.include];
     }
     if (cliArgs.exclude) {
-      mergedConfig.exclude = cliArgs.exclude;
+      mergedConfig.exclude = [...(mergedConfig.exclude || []), ...cliArgs.exclude];
     }
   }
   
