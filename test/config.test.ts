@@ -98,4 +98,62 @@ describe("Config", () => {
       include: []
     });
   });
+
+  it("should append CLI arguments to config", async () => {
+    const localConfig = {
+      mode: "copy",
+      include: [".env", "config.json"],
+      exclude: ["node_modules"]
+    };
+    
+    writeFileSync(".graftreerc", JSON.stringify(localConfig));
+    
+    const cliArgs = {
+      include: [".env.local", ".env.test"],
+      exclude: ["*.log"]
+    };
+    
+    const config = await loadConfig(cliArgs);
+    
+    expect(config).toEqual({
+      mode: "copy",
+      include: [".env", "config.json", ".env.local", ".env.test"], // CLI args appended to config
+      exclude: ["node_modules", "*.log"] // CLI args appended to config
+    });
+  });
+
+  it("should use config file when no CLI arguments provided", async () => {
+    const localConfig = {
+      mode: "symlink",
+      include: [".env", "config.json"]
+    };
+    
+    writeFileSync(".graftreerc", JSON.stringify(localConfig));
+    
+    const config = await loadConfig();
+    
+    expect(config).toEqual(localConfig);
+  });
+
+  it("should append CLI arguments with config when partial CLI args provided", async () => {
+    const localConfig = {
+      mode: "copy",
+      include: [".env", "config.json"],
+      exclude: ["node_modules"]
+    };
+    
+    writeFileSync(".graftreerc", JSON.stringify(localConfig));
+    
+    const cliArgs = {
+      include: [".env.local"] // Only include provided
+    };
+    
+    const config = await loadConfig(cliArgs);
+    
+    expect(config).toEqual({
+      mode: "copy",
+      include: [".env", "config.json", ".env.local"], // CLI args appended to config
+      exclude: ["node_modules"] // Config value preserved
+    });
+  });
 });
