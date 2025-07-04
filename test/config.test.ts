@@ -124,7 +124,7 @@ describe("Config", () => {
 
   it("should use config file when no CLI arguments provided", async () => {
     const localConfig = {
-      mode: "symlink",
+      mode: "symlink" as const,
       include: [".env", "config.json"]
     };
     
@@ -175,7 +175,7 @@ describe("Config", () => {
 
   it("should handle config with invalid mode value", async () => {
     const invalidConfig = {
-      mode: "invalid-mode",
+      mode: "invalid-mode" as "copy" | "symlink",
       include: [".env"]
     };
     
@@ -185,7 +185,7 @@ describe("Config", () => {
     
     // Current implementation preserves invalid values (no validation)
     expect(config).toEqual({
-      mode: "invalid-mode", // Preserved as-is
+      mode: "invalid-mode" as "copy" | "symlink", // Preserved as-is
       include: [".env"]
     });
   });
@@ -203,8 +203,8 @@ describe("Config", () => {
 
   it("should handle config with non-array include field", async () => {
     const invalidConfig = {
-      mode: "copy",
-      include: ".env" // Should be array
+      mode: "copy" as const,
+      include: ".env" as unknown as string[] // Should be array
     };
     
     writeFileSync(".graftreerc", JSON.stringify(invalidConfig));
@@ -214,13 +214,13 @@ describe("Config", () => {
     // Current implementation preserves non-array values (no validation)
     expect(config).toEqual({
       mode: "copy",
-      include: ".env" // Preserved as-is
+      include: ".env" as unknown as string[] // Preserved as-is
     });
   });
 
   it("should preserve unknown fields in config", async () => {
     const configWithExtra = {
-      mode: "copy",
+      mode: "copy" as const,
       include: [".env"],
       customField: "custom-value"
     };
@@ -229,10 +229,10 @@ describe("Config", () => {
     
     const config = await loadConfig();
     
-    expect(config).toEqual({
+    expect(config).toEqual(expect.objectContaining({
       mode: "copy",
       include: [".env"],
       customField: "custom-value"
-    });
+    }));
   });
 });

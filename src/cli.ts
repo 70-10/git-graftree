@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { defineCommand, runMain } from "citty";
-import { loadConfig, CliArgs } from "./config";
+import { loadConfig, type CliArgs } from "./config";
 import { createWorktree, isGitRepository } from "./worktree";
 import { expandGlobPatterns, filterPaths } from "./pattern-matching";
 import { processPath } from "./file-operations";
