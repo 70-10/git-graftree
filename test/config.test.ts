@@ -124,7 +124,7 @@ describe("Config", () => {
 
   it("should use config file when no CLI arguments provided", async () => {
     const localConfig = {
-      mode: "symlink",
+      mode: "symlink" as const,
       include: [".env", "config.json"]
     };
     
@@ -155,5 +155,84 @@ describe("Config", () => {
       include: [".env", "config.json", ".env.local"], // CLI args appended to config
       exclude: ["node_modules"] // Config value preserved
     });
+  });
+
+  it("should handle config with missing mode field", async () => {
+    const incompleteConfig = {
+      include: [".env"]
+      // mode field missing
+    };
+    
+    writeFileSync(".graftreerc", JSON.stringify(incompleteConfig));
+    
+    const config = await loadConfig();
+    
+    expect(config).toEqual({
+      mode: "copy", // Should use default
+      include: [".env"]
+    });
+  });
+
+  it("should handle config with invalid mode value", async () => {
+    const invalidConfig = {
+      mode: "invalid-mode" as "copy" | "symlink",
+      include: [".env"]
+    };
+    
+    writeFileSync(".graftreerc", JSON.stringify(invalidConfig));
+    
+    const config = await loadConfig();
+    
+    // Current implementation preserves invalid values (no validation)
+    expect(config).toEqual({
+      mode: "invalid-mode" as "copy" | "symlink", // Preserved as-is
+      include: [".env"]
+    });
+  });
+
+  it("should handle empty config file", async () => {
+    writeFileSync(".graftreerc", "{}");
+    
+    const config = await loadConfig();
+    
+    expect(config).toEqual({
+      mode: "copy", // Default mode
+      include: [] // Default include
+    });
+  });
+
+  it("should handle config with non-array include field", async () => {
+    const invalidConfig = {
+      mode: "copy" as const,
+      include: ".env" as unknown as string[] // Should be array
+    };
+    
+    writeFileSync(".graftreerc", JSON.stringify(invalidConfig));
+    
+    const config = await loadConfig();
+    
+    // Current implementation preserves non-array values (no validation)
+    expect(config).toEqual({
+      mode: "copy",
+      include: ".env" as unknown as string[] // Preserved as-is
+    });
+  });
+
+  it("should preserve unknown fields in config", async () => {
+    const configWithExtra = {
+      mode: "copy" as const,
+      include: [".env"],
+      customField: "custom-value"
+    };
+    
+    writeFileSync(".graftreerc", JSON.stringify(configWithExtra));
+    
+    const config = await loadConfig();
+    
+    expect(config).toEqual(expect.objectContaining({
+      mode: "copy",
+      include: [".env"],
+      customField: "custom-value"
+    }));
   });
 });

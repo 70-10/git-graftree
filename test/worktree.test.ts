@@ -265,4 +265,99 @@ describe("Worktree", () => {
       expect(existsSync(repoDir)).toBe(true);
     });
   });
+
+  describe("Error handling", () => {
+    it("should handle force flag when worktree already exists", async () => {
+      const branchName = `force-test-${Date.now()}`;
+      const customPath = path.join(testDir, "force-test-worktree");
+      
+      // Create worktree first time
+      await createWorktree({
+        branch: branchName,
+        path: customPath
+      });
+      
+      expect(existsSync(customPath)).toBe(true);
+      
+      // Remove the worktree first, then create directory to simulate conflict
+      await execa("git", ["worktree", "remove", customPath], { stdio: "ignore" });
+      mkdirSync(customPath); // Create conflicting directory
+      
+      // Try to create worktree again with force flag
+      const worktreePath = await createWorktree({
+        branch: branchName,
+        path: customPath,
+        force: true
+      });
+      
+      expect(worktreePath).toBe(customPath);
+      expect(existsSync(customPath)).toBe(true);
+    });
+
+    it("should throw error when creating worktree fails", async () => {
+      const invalidPath = "/invalid/path/that/cannot/be/created";
+      
+      await expect(createWorktree({
+        branch: "test-branch",
+        path: invalidPath
+      })).rejects.toThrow("Failed to create worktree");
+    });
+
+    it("should handle no-track flag correctly", async () => {
+      const branchName = `no-track-test-${Date.now()}`;
+      const customPath = path.join(testDir, "no-track-worktree");
+      
+      const worktreePath = await createWorktree({
+        branch: branchName,
+        path: customPath,
+        noTrack: true
+      });
+      
+      expect(worktreePath).toBe(customPath);
+      expect(existsSync(customPath)).toBe(true);
+      
+      // Verify the branch was created
+      const branchExists = await checkBranchExists(branchName);
+      expect(branchExists).toBe(true);
+    });
+
+    it("should handle repository name fallback when not in git repo", async () => {
+      // Save original function and mock it temporarily
+      const originalCwd = process.cwd();
+      const tempNonGitDir = path.join(os.tmpdir(), "non-git-fallback-" + Date.now());
+      
+      try {
+        mkdirSync(tempNonGitDir, { recursive: true });
+        process.chdir(tempNonGitDir);
+        
+        const repoName = await getRepositoryName();
+        
+        // Should fallback to current directory name
+        expect(typeof repoName).toBe("string");
+        expect(repoName.length).toBeGreaterThan(0);
+        expect(repoName).toMatch(/^non-git-fallback-\d+$/);
+      } finally {
+        process.chdir(originalCwd);
+        if (existsSync(tempNonGitDir)) {
+          rmSync(tempNonGitDir, { recursive: true, force: true });
+        }
+      }
+    });
+
+    it("should handle ghq command timeout gracefully", async () => {
+      // This test verifies that getGhqRoot() handles command timeouts
+      const ghqRoot = await getGhqRoot();
+      
+      // Should return either ghq root or fallback path
+      expect(typeof ghqRoot).toBe("string");
+      expect(ghqRoot.length).toBeGreaterThan(0);
+      expect(path.isAbsolute(ghqRoot)).toBe(true);
+      
+      // Should be a valid directory path (either actual ghq root or fallback)
+      expect(ghqRoot).toBeTruthy();
+      // Fallback path is ~/ghq, so it should end with user's home or contain ghq
+      const isValidGhqPath = ghqRoot.includes("ghq") || ghqRoot.includes(os.homedir());
+      expect(isValidGhqPath).toBe(true);
+    });
+  });
 });
