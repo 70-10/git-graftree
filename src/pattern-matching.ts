@@ -33,7 +33,7 @@ export function isExcluded(filePath: string, excludePatterns: string[]): boolean
       if (regex.test(filePath)) {
         return true;
       }
-    } else if (filePath === pattern || filePath.endsWith(`/${pattern}`) || filePath.includes(`/${pattern}/`)) {
+    } else if (filePath === pattern || filePath.endsWith(`/${pattern}`) || filePath.includes(`/${pattern}/`) || filePath.startsWith(`${pattern}/`)) {
       return true;
     }
   }
