@@ -39,13 +39,13 @@ jobs:
       - name: Run tests with coverage
         run: bun test --coverage
 
-      - name: LCOV Coverage Report
+      - name: Bun Coverage Report
         if: github.event_name == 'pull_request'
-        uses: romeovs/lcov-reporter-action@v0.4.0
+        uses: 70-10/bun-coverage-report-action@v1.0.2
         with:
-          lcov-file: ./coverage/lcov.info
+          lcov-path: ./coverage/lcov.info
+          min-coverage: 90
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          filter-changed-files: false
 
       - name: Run TypeScript type check
         run: bunx tsc --noEmit
