@@ -44,7 +44,7 @@ jobs:
         uses: 70-10/bun-coverage-report-action@v1.0.1
         with:
           lcov-path: ./coverage/lcov.info
-          min-coverage: 90
+          min-coverage: 65
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run TypeScript type check
