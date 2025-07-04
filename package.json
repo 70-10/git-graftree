@@ -16,6 +16,7 @@
     "build": "bun build --outfile=dist/git-graftree.js --target=node src/cli.ts && chmod +x dist/git-graftree.js",
     "build:bun": "bun build --compile --outfile=dist/git-graftree src/cli.ts",
     "test": "bun test",
+    "test:coverage": "bun test --coverage",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {

@@ -34,7 +34,7 @@ describe("Config", () => {
 
   it("should load local config from .graftreerc", async () => {
     const localConfig = {
-      mode: "symlink",
+      mode: "symlink" as const,
       include: [".env", ".env.local"]
     };
     
@@ -47,13 +47,13 @@ describe("Config", () => {
 
   it("should merge global and local configs with local taking precedence", async () => {
     const globalConfig = {
-      mode: "copy",
+      mode: "copy" as const,
       include: [".env", "config.json"],
       exclude: ["node_modules"]
     };
     
     const localConfig = {
-      mode: "symlink",
+      mode: "symlink" as const,
       include: [".env.local"]
     };
     
