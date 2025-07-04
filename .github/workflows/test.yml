@@ -41,7 +41,7 @@ jobs:
 
       - name: Bun Coverage Report
         if: github.event_name == 'pull_request'
-        uses: 70-10/bun-coverage-report-action@v1
+        uses: 70-10/bun-coverage-report-action@v1.0.1
         with:
           lcov-path: ./coverage/lcov.info
           min-coverage: 90
