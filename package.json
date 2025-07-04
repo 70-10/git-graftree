@@ -1,6 +1,6 @@
 {
   "name": "git-graftree",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Create git worktree and copy/symlink files from base directory",
   "type": "module",
   "bin": {
