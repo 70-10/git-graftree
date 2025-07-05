@@ -26,14 +26,10 @@ export async function copyOrLinkFile(options: FileOperationOptions): Promise<voi
     mkdirSync(targetDir, { recursive: true });
   }
   
-  try {
-    if (useSymlinks) {
-      await symlink(sourcePath, targetPath);
-    } else {
-      await copyFile(sourcePath, targetPath);
-    }
-  } catch (error) {
-    throw error;
+  if (useSymlinks) {
+    await symlink(sourcePath, targetPath);
+  } else {
+    await copyFile(sourcePath, targetPath);
   }
 }
 
