@@ -8,6 +8,7 @@ import { createWorktree, isGitRepository, checkBranchExists, getGhqRoot, getRepo
 describe("Worktree", () => {
   const testDir = path.join(os.tmpdir(), "graftree-worktree-test-" + Date.now());
   const originalCwd = process.cwd();
+  const createdWorktrees: string[] = [];
   
   beforeEach(async () => {
     if (existsSync(testDir)) {
@@ -28,10 +29,47 @@ describe("Worktree", () => {
     
     // Rename default branch to main (in case it's 'master')
     await execa("git", ["branch", "-M", "main"], { stdio: "ignore" });
+    
+    // Clear worktree tracking array
+    createdWorktrees.length = 0;
   });
   
-  afterEach(() => {
+  afterEach(async () => {
     process.chdir(originalCwd);
+    
+    // Clean up all created worktrees
+    for (const worktreePath of createdWorktrees) {
+      try {
+        if (existsSync(worktreePath)) {
+          // Try to remove the worktree from git first
+          try {
+            await execa("git", ["worktree", "remove", worktreePath, "--force"], { 
+              stdio: "ignore", 
+              cwd: testDir,
+              timeout: 5000 
+            });
+          } catch {
+            // If git worktree remove fails, try to remove the directory directly
+            rmSync(worktreePath, { recursive: true, force: true });
+          }
+        }
+      } catch (dirError) {
+        console.warn(`Failed to remove worktree directory: ${worktreePath}`, dirError);
+      }
+    }
+    
+    // Also clean up any remaining worktree directories with our test pattern
+    try {
+      const ghqRoot = await getGhqRoot();
+      const worktreesDir = path.join(ghqRoot, "worktrees");
+      const { execSync } = require("child_process");
+      // Clean up worktree directories that might be created in ghq root
+      execSync(`find "${worktreesDir}" -name "*graftree-worktree-test*" -type d -exec rm -rf {} + 2>/dev/null || true`, { stdio: "ignore" });
+    } catch {
+      // Ignore cleanup errors
+    }
+    
+    // Clean up test directory
     if (existsSync(testDir)) {
       rmSync(testDir, { recursive: true });
     }
@@ -76,6 +114,9 @@ describe("Worktree", () => {
       branch: cleanBranchName
     });
     
+    // Track created worktree for cleanup
+    createdWorktrees.push(worktreePath);
+    
     // Verify it uses ghq-style path structure
     const ghqRoot = await getGhqRoot();
     const repoName = await getRepositoryName();
@@ -106,6 +147,9 @@ describe("Worktree", () => {
       path: customPath
     });
     
+    // Track created worktree for cleanup
+    createdWorktrees.push(worktreePath);
+    
     expect(worktreePath).toBe(customPath);
     expect(existsSync(customPath)).toBe(true);
     expect(existsSync(path.join(customPath, "custom.txt"))).toBe(true);
@@ -123,6 +167,9 @@ describe("Worktree", () => {
       branch: nonExistentBranch,
       path: customPath
     });
+    
+    // Track created worktree for cleanup
+    createdWorktrees.push(worktreePath);
     
     expect(worktreePath).toBe(customPath);
     expect(existsSync(customPath)).toBe(true);
@@ -150,6 +197,9 @@ describe("Worktree", () => {
       branch: anotherBranchName,
       path: anotherPath
     });
+    
+    // Track created worktree for cleanup
+    createdWorktrees.push(worktreePath);
     
     expect(worktreePath).toBe(anotherPath);
     expect(existsSync(anotherPath)).toBe(true);
@@ -201,6 +251,9 @@ describe("Worktree", () => {
         path: customPath
       });
       
+      // Track created worktree for cleanup
+      createdWorktrees.push(worktreePath);
+      
       expect(worktreePath).toBe(customPath);
       expect(existsSync(customPath)).toBe(true);
       
@@ -247,6 +300,9 @@ describe("Worktree", () => {
         branch: newBranchName
       });
       
+      // Track created worktree for cleanup
+      createdWorktrees.push(worktreePath);
+      
       const ghqRoot = await getGhqRoot();
       const repoName = await getRepositoryName();
       const expectedPath = path.join(ghqRoot, "worktrees", repoName, newBranchName);
@@ -272,10 +328,13 @@ describe("Worktree", () => {
       const customPath = path.join(testDir, "force-test-worktree");
       
       // Create worktree first time
-      await createWorktree({
+      const worktreePath = await createWorktree({
         branch: branchName,
         path: customPath
       });
+      
+      // Track created worktree for cleanup
+      createdWorktrees.push(worktreePath);
       
       expect(existsSync(customPath)).toBe(true);
       
@@ -284,13 +343,16 @@ describe("Worktree", () => {
       mkdirSync(customPath); // Create conflicting directory
       
       // Try to create worktree again with force flag
-      const worktreePath = await createWorktree({
+      const worktreePath2 = await createWorktree({
         branch: branchName,
         path: customPath,
         force: true
       });
       
-      expect(worktreePath).toBe(customPath);
+      // Track created worktree for cleanup
+      createdWorktrees.push(worktreePath2);
+      
+      expect(worktreePath2).toBe(customPath);
       expect(existsSync(customPath)).toBe(true);
     });
 
@@ -312,6 +374,9 @@ describe("Worktree", () => {
         path: customPath,
         noTrack: true
       });
+      
+      // Track created worktree for cleanup
+      createdWorktrees.push(worktreePath);
       
       expect(worktreePath).toBe(customPath);
       expect(existsSync(customPath)).toBe(true);
