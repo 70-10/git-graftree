@@ -17,6 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `bun test test/config.test.ts` - Run specific test file
 - `bun run build` - Build CLI executable for Node.js distribution
 - `bun run build:bun` - Build native Bun executable (development only)
+- `bun run lint` - Run oxlint to check code quality
 
 ### Local Testing
 ```bash
