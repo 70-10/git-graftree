@@ -67,7 +67,7 @@ describe("Worktree", () => {
     const cleanBranchName = branchResult.stdout.trim();
     try {
       await execa("git", ["checkout", "main"], { stdio: "ignore" });
-    } catch (error) {
+    } catch {
       // If main doesn't exist, stay on current branch
       console.warn("Failed to checkout main branch, staying on current branch");
     }
@@ -95,7 +95,7 @@ describe("Worktree", () => {
     await execa("git", ["commit", "-m", "Add custom"], { stdio: "ignore" });
     try {
       await execa("git", ["checkout", "main"], { stdio: "ignore" });
-    } catch (error) {
+    } catch {
       // If main doesn't exist, stay on current branch
       console.warn("Failed to checkout main branch, staying on current branch");
     }
@@ -140,7 +140,7 @@ describe("Worktree", () => {
     await execa("git", ["commit", "-m", "Add another"], { stdio: "ignore" });
     try {
       await execa("git", ["checkout", "main"], { stdio: "ignore" });
-    } catch (error) {
+    } catch {
       // If main doesn't exist, stay on current branch
       console.warn("Failed to checkout main branch, staying on current branch");
     }
@@ -174,7 +174,7 @@ describe("Worktree", () => {
       await execa("git", ["checkout", "-b", testBranchName], { stdio: "ignore" });
       try {
       await execa("git", ["checkout", "main"], { stdio: "ignore" });
-    } catch (error) {
+    } catch {
       // If main doesn't exist, stay on current branch
       console.warn("Failed to checkout main branch, staying on current branch");
     }

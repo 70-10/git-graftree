@@ -85,7 +85,7 @@ export async function getGhqRoot(): Promise<string> {
   try {
     const result = await execa("ghq", ["root"], { timeout: 2000 });
     return result.stdout.trim();
-  } catch (error) {
+  } catch {
     // Fallback to default ghq root if ghq command is not available
     const fallbackPath = path.join(process.env.HOME || process.cwd(), "ghq");
     return fallbackPath;
@@ -97,7 +97,7 @@ export async function getRepositoryName(): Promise<string> {
     const result = await execa("git", ["rev-parse", "--show-toplevel"]);
     const repoRoot = result.stdout.trim();
     return path.basename(repoRoot);
-  } catch (error) {
+  } catch {
     // Fallback to current directory name if not in a git repository
     const fallbackName = path.basename(process.cwd());
     return fallbackName;

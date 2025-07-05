@@ -1,5 +1,4 @@
 import { glob } from "glob";
-import path from "path";
 
 export async function expandGlobPatterns(
   patterns: string[],
