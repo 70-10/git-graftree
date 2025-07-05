@@ -2,45 +2,47 @@
   "name": "git-graftree",
   "version": "0.1.1",
   "description": "Create git worktree and copy/symlink files from base directory",
-  "type": "module",
-  "bin": {
-    "git-graftree": "./dist/git-graftree.js"
-  },
-  "files": [
-    "dist/"
-  ],
-  "engines": {
-    "node": ">=20"
-  },
-  "scripts": {
-    "build": "bun build --outfile=dist/git-graftree.js --target=node src/cli.ts && chmod +x dist/git-graftree.js",
-    "build:bun": "bun build --compile --outfile=dist/git-graftree src/cli.ts",
-    "test": "bun test",
-    "test:coverage": "bun test --coverage",
-    "prepublishOnly": "npm run build"
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@types/node": "^24.0.10"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "citty": "^0.1.6",
-    "execa": "^9.6.0",
-    "glob": "^11.0.3"
-  },
   "keywords": [
     "git",
     "worktree",
     "cli",
     "development"
   ],
-  "author": "70-10",
-  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/70-10/git-graftree.git"
+    "url": "git+https://github.com/70-10/git-graftree.git"
+  },
+  "license": "MIT",
+  "author": "70-10",
+  "type": "module",
+  "bin": {
+    "git-graftree": "dist/git-graftree.js"
+  },
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "bun build --outfile=dist/git-graftree.js --target=node src/cli.ts && chmod +x dist/git-graftree.js",
+    "build:bun": "bun build --compile --outfile=dist/git-graftree src/cli.ts",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "prepublishOnly": "npm run build",
+    "lint": "oxlint ."
+  },
+  "dependencies": {
+    "citty": "^0.1.6",
+    "execa": "^9.6.0",
+    "glob": "^11.0.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^24.0.10",
+    "oxlint": "1.5.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
